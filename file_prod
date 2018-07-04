@@ -1,0 +1,426 @@
+create or replace
+package body      PKG_CS_XML_FOR_EXPORT is
+
+  -- Function returns annual data of lku1 report
+  function getAnnualDataLKU1_xmltype(p_year number) return xmltype is
+    resultXML xmltype;
+  begin
+    with t_parent as
+     (select lc.id,
+             lc.el_name,
+             lc.ind_code,
+             nvl(lc.lku_detail_code, '0') as lku_detail_code,
+             lc.measure_id
+        from cs_lku1_xml_conditions lc
+       order by lc.id),
+    t_child as
+     (select ind.code as indicator_code,
+             ind.nameru as name_indicator,
+             nvl(det.code, '0') as detail_code,
+             det.nameru as detail_name,
+             mes.id as measure_id,
+             mes.name as measure_name,
+             sum(fl.value_planned) as value_planned,
+             sum(fl.value_actual) as value_actual
+        from cs_fact_lku fl
+       inner join cs_d_lku_indicator_mapping im
+          on im.id = fl.lku_mapping_id
+       inner join cs_d_lku_indicator ind
+          on ind.id = im.lku_indicator_id
+   and ind.code in ('500','501','502','503','504','505','506','507',
+						'508','509','106','510','511','123','512','513','516','517',
+						'518','522','523','534','538','540','543','531','532','536')
+        left join cs_d_lku_detail det
+          on det.id = im.lku_detail_id
+        left join d_measures mes
+          on mes.id = im.measure_id
+       where fl.lku_journal_id in
+             (select lj.id
+                from cs_lku_journal lj
+               where lj.reportform_id = 101
+                 and lj.report_year = p_year
+                 and lj.report_quarter = 4)
+       group by ind.code, ind.nameru, det.code, det.nameru, mes.id, mes.name
+       order by ind.code, det.code)
+    select XMLElement("LKU1",
+             XMLAttributes('http://kz.egsu.lku1' AS "xmlns",
+                           'http://www.w3.org/2001/XMLSchema-instance' AS "xmlns:xsi"),
+             XMLConcat(
+               XMLElement("lku_contract",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_planned,0))
+                     order by t.id
+                   )
+               ),
+               XMLElement("lku_fact",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_actual,0))
+                     order by t.id
+                 )
+               )
+             )
+           )
+      into resultXML
+      from t_parent t
+      left join t_child d
+        on d.indicator_code = t.ind_code
+       and d.detail_code = t.lku_detail_code
+       and d.measure_id = t.measure_id;
+    -- Rerurning data
+    return(resultXML);
+  end;
+
+  -- Function returns annual data of lku1 report
+  function getAnnualDataLKU1_clobtype(p_year number) return clob is
+    resultXML xmltype;
+  begin
+    resultXML := getAnnualDataLKU1_xmltype(p_year);
+    if (resultXML is null) then
+       return (null);
+    end if;
+    -- replacing ',' to '.'
+    return replace(resultXML.getClobVal(),',','.');
+  end;
+
+  -- Function returns annual data of lku2 report
+  function getAnnualDataLKU2_xmltype(p_year number) return xmltype is
+    resultXML xmltype;
+  begin
+    with t_parent as
+     (select lc.id,
+             lc.el_name,
+             lc.ind_code,
+             nvl(lc.lku_detail_code, '0') as lku_detail_code,
+             lc.measure_id
+        from cs_lku2_xml_conditions lc
+       order by lc.id),
+    t_child as
+     (select ind.code as indicator_code,
+             ind.nameru as name_indicator,
+             nvl(det.code, '0') as detail_code,
+             det.nameru as detail_name,
+             mes.id as measure_id,
+             mes.name as measure_name,
+             sum(fl.value_planned) as value_planned,
+             sum(fl.value_actual) as value_actual
+        from cs_fact_lku fl
+       inner join cs_d_lku_indicator_mapping im
+          on im.id = fl.lku_mapping_id
+       inner join cs_d_lku_indicator ind
+          on ind.id = im.lku_indicator_id
+         and ind.code in ('501','502','508','509','510',
+                          '511','512','513','522','523',
+                          '528','529','530','531','532',
+                          '533','534','535','536','540')
+        left join cs_d_lku_detail det
+          on det.id = im.lku_detail_id
+        left join d_measures mes
+          on mes.id = im.measure_id
+       where fl.lku_journal_id in
+             (select lj.id
+                from cs_lku_journal lj
+               where lj.reportform_id = 102
+                 and lj.report_year = p_year
+                 and lj.report_quarter = 4)
+       group by ind.code, ind.nameru, det.code, det.nameru, mes.id, mes.name
+       order by ind.code, det.code)
+    select XMLElement("LKU2",
+             XMLAttributes('http://kz.egsu.lku2' AS "xmlns",
+                           'http://www.w3.org/2001/XMLSchema-instance' AS "xmlns:xsi"),
+             XMLConcat(
+               XMLElement("lku_contract",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_planned,0))
+                     order by t.id
+                   )
+               ),
+               XMLElement("lku_fact",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_planned,0))
+                     order by t.id
+                 )
+               )
+             )
+           )
+      into resultXML
+      from t_parent t
+      left join t_child d
+        on d.indicator_code = t.ind_code
+       and d.detail_code = t.lku_detail_code
+       and d.measure_id = t.measure_id;
+    -- Rerurning data
+    return(resultXML);
+  end;
+
+  -- Function returns annual data of lku2 report
+  function getAnnualDataLKU2_clobtype(p_year number) return clob is
+    resultXML xmltype;
+  begin
+    resultXML := getAnnualDataLKU2_xmltype(p_year);
+    if (resultXML is null) then
+       return (null);
+    end if;
+    -- replacing ',' to '.'
+    return replace(resultXML.getClobVal(),',','.');
+  end;
+
+  -- Function returns annual data of lku3 report
+  function getAnnualDataLKU3_xmltype(p_year number) return xmltype is
+    resultXML xmltype;
+  begin
+    with t_parent as
+     (select lc.id,
+             lc.el_name,
+             lc.ind_code,
+             nvl(lc.lku_detail_code, '0') as lku_detail_code,
+             lc.measure_id
+        from cs_lku3_xml_conditions lc
+       order by lc.id),
+    t_child as
+     (select ind.code as indicator_code,
+             ind.nameru as name_indicator,
+             nvl(det.code, '0') as detail_code,
+             det.nameru as detail_name,
+             mes.id as measure_id,
+             mes.name as measure_name,
+             sum(fl.value_planned) as value_planned,
+             sum(fl.value_actual) as value_actual
+        from cs_fact_lku fl
+       inner join cs_d_lku_indicator_mapping im
+          on im.id = fl.lku_mapping_id
+       inner join cs_d_lku_indicator ind
+          on ind.id = im.lku_indicator_id
+and ind.code in ('311','312','313','314','315','316','317','318','319',
+									'500','501','502','503','504','505','506','507','508',
+									'509','510','511','512','513','516','517','518','522',
+									'523','531','532','534','535','536','540','543')
+        left join cs_d_lku_detail det
+          on det.id = im.lku_detail_id
+        left join d_measures mes
+          on mes.id = im.measure_id
+       where fl.lku_journal_id in
+             (select lj.id
+                from cs_lku_journal lj
+               where lj.reportform_id = 103
+                 and lj.report_year = p_year
+                 and lj.report_quarter = 4)
+       group by ind.code, ind.nameru, det.code, det.nameru, mes.id, mes.name
+       order by ind.code, det.code)
+    select XMLElement("LKU3",
+             XMLAttributes('http://kz.egsu.lku3' AS "xmlns",
+                           'http://www.w3.org/2001/XMLSchema-instance' AS "xmlns:xsi"),
+             XMLConcat(
+               XMLElement("lku_contract",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_planned,0))
+                     order by t.id
+                   )
+               ),
+               XMLElement("lku_fact",
+                 XMLAgg(
+                   XMLElement(evalname(t.el_name),
+                     nvl(d.value_actual,0))
+                     order by t.id
+                 )
+               )
+             )
+           )
+      into resultXML
+      from t_parent t
+      left join t_child d
+        on d.indicator_code = t.ind_code
+       and d.detail_code = t.lku_detail_code
+       and d.measure_id = t.measure_id;
+    return (resultXML);
+  end;
+
+  -- Function returns annual data of lku3 report
+  function getAnnualDataLKU3_clobtype(p_year number) return clob is
+    resultXML xmltype;
+  begin
+    resultXML := getAnnualDataLKU3_xmltype(p_year);
+    if (resultXML is null) then
+       return (null);
+    end if;
+    -- replacing ',' to '.'
+    return replace(resultXML.getClobVal(),',','.');
+  end;
+
+  -- Function returns monthly data of f06 gas report
+  function getMonthlyDataGAS_xmltype(p_month number, p_year number) return xmltype is
+    resultXML xmltype;
+  begin
+    with
+    facts as
+     (select resp.bin_iin as a_bin,sum(d.gas_associated) as gas_associated,sum(d.gas_natural) as gas_natural,d.field_id,to_char(d.remark) as remark,resp.nameru,resp.namekz
+        from memr.cs_fact_f06 d
+       inner join memr.cs_form_journal fj
+          on fj.id = d.form_journal_id and fj.reportform_id = 6
+       inner join memr.cs_respondent resp
+          on resp.id = fj.respondent_id
+       where d.report_year = p_year
+         and d.reportmonth_id = p_month
+       group by resp.bin_iin,d.field_id,to_char(d.remark),resp.nameru,resp.namekz
+       order by resp.bin_iin),
+    bins as
+     (select resp.bin_iin as a_bin
+        from memr.cs_fact_f06 d
+       inner join memr.cs_form_journal fj
+          on fj.id = d.form_journal_id
+         and fj.reportform_id = 6
+       inner join memr.cs_respondent resp
+          on resp.id = fj.respondent_id
+       where d.report_year = p_year
+         and d.reportmonth_id = p_month
+       group by resp.bin_iin),
+    fields_and_facts as
+     (select j.a_bin,decode(j.field_id,null,j.nameru,g.name) as nameru,decode(j.field_id,null,j.namekz,g.namekz) as namekz,nvl(j.gas_associated,0) as gas_associated,nvl(j.gas_natural,0) as gas_natural,to_char(j.remark) as remark
+        from facts j
+        left join g_depths g
+          on g.id = j.field_id)
+      select
+      XMLElement("Form06",
+        XMLAttributes('http://kz.egsu.form06' AS "xmlns",
+                      'http://www.w3.org/2001/XMLSchema-instance' AS "xmlns:xsi"),
+        XMLConcat(
+          XMLElement("Header",
+            XMLConcat(
+              XMLElement("year",p_year),
+              XMLElement("month",p_month)
+            )
+          ),
+          XMLElement("DATA",
+            XMLAgg(
+              XMLElement("INFO",
+                XMLConcat(
+                  XMLElement("BIN",f.a_bin),
+                  (select
+                    XMLAgg(
+                      XMLElement("Field",
+                        XMLConcat(
+                          XMLElement("nameru",fq.nameru),
+                          XMLElement("namekz",fq.namekz),
+                          XMLElement("gas_associated",fq.gas_associated),
+                          XMLElement("gas_natural",fq.gas_natural),
+                          XMLElement("Remark",fq.remark)
+                        )
+                      )
+                    )
+                     from fields_and_facts fq
+                    where fq.a_bin = f.a_bin
+                  )
+                )
+              )
+              order by f.a_bin
+            )
+          )
+        )
+      )
+    into resultXML
+    from bins f;
+    return (resultXML);
+  end;
+
+  function getMonthlyDataGAS_clobtype(p_month number, p_year number) return clob is
+    resultXML xmltype;
+  begin
+    resultXML := getMonthlyDataGAS_xmltype(p_month, p_year);
+    if (resultXML is null) then
+       return (null);
+    end if;
+    -- replacing ',' to '.'
+    return replace(resultXML.getClobVal(),',','.');
+  end;
+
+  -- Function returns monthly data of f03 gas report
+  function getMonthlyDataOIL_xmltype(p_month number, p_year number) return xmltype is
+    resultXML xmltype;
+  begin
+    with
+    facts as
+     (select resp.bin_iin as a_bin,sum(d.produced_oil) as produced_oil,sum(d.produced_gcondensate) as produced_gcondensate,sum(d.delivered_oil) as delivered_oil,sum(d.delivered_gcondensate) as delivered_gcondensate,d.field_id,to_char(d.remark) as remark,resp.nameru,resp.namekz
+        from memr.cs_fact_f03 d
+       inner join memr.cs_form_journal fj
+          on fj.id = d.form_journal_id and fj.reportform_id = 3
+       inner join memr.cs_respondent resp
+          on resp.id = fj.respondent_id
+       where d.report_year = p_year
+         and d.reportmonth_id = p_month
+       group by resp.bin_iin,d.field_id,to_char(d.remark),resp.nameru,resp.namekz),
+    bins as
+     (select resp.bin_iin as a_bin
+        from memr.cs_fact_f03 d
+       inner join memr.cs_form_journal fj
+          on fj.id = d.form_journal_id and fj.reportform_id = 3
+       inner join memr.cs_respondent resp
+          on resp.id = fj.respondent_id
+       where d.report_year = p_year
+         and d.reportmonth_id = p_month
+       group by resp.bin_iin),
+    fields_and_facts as
+     (select j.a_bin,decode(j.field_id,null,j.nameru,g.name) as nameru,decode(j.field_id,null,j.namekz,g.namekz) as namekz,nvl(j.produced_oil,0) as produced_oil,nvl(j.produced_gcondensate,0) as produced_gcondensate,nvl(j.delivered_oil,0) as delivered_oil,nvl(j.delivered_gcondensate,0) as delivered_gcondensate, to_char(j.remark) as remark
+        from facts j
+        left join g_depths g
+          on g.id = j.field_id)
+    select
+      XMLElement("Form03",
+        XMLAttributes('http://kz.egsu.form03' AS "xmlns",
+                      'http://www.w3.org/2001/XMLSchema-instance' AS "xmlns:xsi"),
+        XMLConcat(
+          XMLElement("Header",
+            XMLConcat(
+              XMLElement("year",p_year),
+              XMLElement("month",p_month)
+            )
+          ),
+          XMLElement("DATA",
+            XMLAgg(
+              XMLElement("INFO",
+                XMLConcat(
+                  XMLElement("BIN",f.a_bin),
+                  (select
+                    XMLAgg(
+                      XMLElement("Field",
+                        XMLConcat(
+                          XMLElement("nameru",fq.nameru),
+                          XMLElement("namekz",fq.namekz),
+                          XMLElement("produced_oil",fq.produced_oil),
+                          XMLElement("produced_gcondensate",fq.produced_gcondensate),
+                          XMLElement("delivered_oil",fq.delivered_oil),
+                          XMLElement("delivered_gcondensate",fq.delivered_gcondensate),
+                          XMLElement("Remark",fq.remark)
+                        )
+                      )
+                    )
+                     from fields_and_facts fq
+                    where fq.a_bin = f.a_bin
+                  )
+                )
+              )
+              order by f.a_bin
+            )
+          )
+        )
+      )
+      into resultXML
+      from bins f;
+    return (resultXML);
+  end;
+
+  function getMonthlyDataOIL_clobtype(p_month number, p_year number) return clob is
+    resultXML xmltype;
+  begin
+    resultXML := getMonthlyDataOIL_xmltype(p_month, p_year);
+    if (resultXML is null) then
+       return (null);
+    end if;
+    -- replacing ',' to '.'
+    return replace(resultXML.getClobVal(),',','.');
+  end;
+
+end PKG_CS_XML_FOR_EXPORT;

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<f:view>
+    <h:head>
+        <h:outputStylesheet library="css" name="styleS.css"/>
+    </h:head>
+    <h:body>
+
+        <div class="ui-g">
+            <div class="ui-g-12 ui-md-12" style="padding-bottom: 70px;">
+                <h:form>
+                    <p:menubar>
+
+                        <f:facet name="options">
+
+                            <p:commandButton  value="Выйти" action="#{rapidMinerJavaView.logout}" icon="ui-icon-extlink"/>
+                        </f:facet>
+                    </p:menubar>
+                </h:form>
+            </div>
+
+            <div class="ui-g-12 ui-md-12">
+                <!-- ******************** HeaderWrap ********************-->
+                <div id="headerwrap">
+                    <h1><span>Интеграция Rapid Miner в Java.</span><br/>Данные взяты с открытого источника UCI Credit Approval Data Set .</h1>
+                    <p:graphicImage library="img" name="uci.png" />
+                    <h1>Процесс статистической оценки эффективности биноминальной классификации</h1>
+                    <p:graphicImage library="img" name="procc_img1.png" />
+
+                    <p:panel header="..." style="margin-left: 20%; margin-right: 20%;">
+
+                        <h:form>
+
+                        <p:growl id="growl" life="2000" />
+
+                        <p:commandButton value="Выполнить анализ данных" id="withIcon" actionListener="#{rapidMinerJavaView.buttonAction}" update="growl resultButton" icon="ui-icon-disk" />
+                        </h:form>
+                        <p:spacer height="5px;"/>
+                        <p:commandButton id="resultButton" value="Результат" action="#{rapidMinerJavaView.goToPageResult}" disabled="#{rapidMinerJavaView.hideResult}" icon="ui-icon-star" />
+                    </p:panel>
+
+                    <p:spacer height="50px;"/>
+                </div>
+            </div>
+
+
+
+            <div class="ui-g-12 ui-md-12">
+
+                <div class="footer-wrapper">
+                    <div id="footer">
+                        <small>&nbsp;&copy; 2018 Astana Integration Rapid Miner in Java.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </h:body>
+</f:view>
+</html>

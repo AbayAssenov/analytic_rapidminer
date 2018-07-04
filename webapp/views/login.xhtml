@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+<f:view>
+    <h:head>
+
+        <title>Student</title>
+
+        <h:outputStylesheet library="css" name="style.css"/>
+
+    </h:head>
+
+    <h:body>
+
+        <div class="wrapper">
+            <div class="container">
+                <h1> Добро пожаловать</h1>
+
+                <h:form>
+                    <p:growl id="messages" showDetail="true"/>
+
+                    <h:outputLabel for="username" value="Логин:"/>
+                    <h:inputText id="username" title="Логин" value="#{userLoginView.username}" required="true"
+                                 label="username"/>
+
+                    <h:outputLabel for="password" value="Пароль:"/>
+                    <h:inputSecret id="password" title="Пароль" value="#{userLoginView.password}" required="true"
+                                   label="password"/>
+
+                    <h:commandButton value="Войти" action="#{userLoginView.login}"/>
+                </h:form>
+
+            </div>
+
+
+            <ul class="bg-bubbles">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </div>
+
+        <h:outputScript library="js" name="jquery.min.js"/>
+        <h:outputScript library="js" name="index.js"/>
+
+    </h:body>
+</f:view>
+
+</html>
